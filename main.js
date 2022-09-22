@@ -202,20 +202,22 @@ async function main() {
         blurSharp: 2,
         blurThreshold: 0.2,
         autoThreshold: true,
+        autoRotate: false,
         lightColor: [1, 1, 1]
     };
     const gui = new GUI();
     gui.add(effectController, "width", 0.1, 100, 0.001).name("Width");
     gui.add(effectController, "height", 0.1, 80, 0.001).name("Height");
     gui.add(effectController, "blurSize", 0.0, 1.0, 0.001).name("Blur Size");
-    gui.add(effectController, "rotationZ", 0.0, 2 * Math.PI, 0.001).name("Rotation Z");
-    gui.add(effectController, "rotationY", 0.0, 2 * Math.PI, 0.001).name("Rotation Y");
+    const zRotController = gui.add(effectController, "rotationZ", 0.0, 2 * Math.PI, 0.001).name("Rotation Z");
+    const yRotController = gui.add(effectController, "rotationY", 0.0, 2 * Math.PI, 0.001).name("Rotation Y");
     gui.add(effectController, "blurSharp", 0.0, 4.0, 0.001).name("Blur Sharp");
     gui.add(effectController, "depthBias", 0.0, 5.0, 0.001).name("Depth Bias");
     gui.add(effectController, "autoThreshold").name("Auto Threshold");
     const blurThresholdController = gui.add(effectController, "blurThreshold", 0.0, 1.0, 0.001).name("Blur Threshold");
     gui.addColor(effectController, "lightColor").name("Light Color");
-    gui.add(effectController, "denoise");
+    gui.add(effectController, "denoise").name("Denoise");
+    gui.add(effectController, "autoRotate").name("Auto Rotate");
     const link = document.createElement('a');
     link.style.display = 'none';
     document.body.appendChild(link);
@@ -294,6 +296,10 @@ async function main() {
         const area = effectController.width * effectController.height;
         if (effectController.autoThreshold) {
             blurThresholdController.setValue(+((area ** 0.306) / ((400 ** 0.306) / 0.2)).toFixed(3));
+        }
+        if (effectController.autoRotate) {
+            yRotController.setValue(effectController.rotationY + 0.01);
+            zRotController.setValue(effectController.rotationZ + 0.05);
         }
         rectLight.color.r = effectController.lightColor[0];
         rectLight.color.g = effectController.lightColor[1];
