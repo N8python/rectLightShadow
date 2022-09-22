@@ -199,6 +199,8 @@ async function main() {
         denoise: true,
         blurSize: 1,
         blurSharp: 2,
+        blurThreshold: 0.2,
+        autoThreshold: true,
         lightColor: [1, 1, 1]
     };
     const gui = new GUI();
@@ -208,6 +210,8 @@ async function main() {
     gui.add(effectController, "rotationZ", 0.0, 2 * Math.PI, 0.001).name("Rotation Z");
     gui.add(effectController, "rotationY", 0.0, 2 * Math.PI, 0.001).name("Rotation Y");
     gui.add(effectController, "blurSharp", 0.0, 4.0, 0.001).name("Blur Sharp");
+    gui.add(effectController, "autoThreshold").name("Auto Threshold");
+    const blurThresholdController = gui.add(effectController, "blurThreshold", 0.0, 1.0, 0.001).name("Blur Threshold");
     gui.addColor(effectController, "lightColor").name("Light Color");
     gui.add(effectController, "denoise");
     const link = document.createElement('a');
@@ -285,6 +289,10 @@ async function main() {
         //  torusKnot.rotation.z += 0.01;
         rectLight.width = effectController.width;
         rectLight.height = effectController.height;
+        const area = effectController.width * effectController.height;
+        if (effectController.autoThreshold) {
+            blurThresholdController.setValue(+((area ** 0.306) / ((400 ** 0.306) / 0.2)).toFixed(3));
+        }
         rectLight.color.r = effectController.lightColor[0];
         rectLight.color.g = effectController.lightColor[1];
         rectLight.color.b = effectController.lightColor[2];
@@ -313,6 +321,10 @@ async function main() {
         hblur.uniforms["near"].value = cam.near;
         hblur.uniforms["far"].value = cam.far;
         vblur.uniforms["near"].value = cam.near;
+        vblur.uniforms["resolution"].value = new THREE.Vector2(clientWidth, clientHeight);
+        hblur.uniforms["resolution"].value = new THREE.Vector2(clientWidth, clientHeight);
+        vblur.uniforms["blurThreshold"].value = effectController.blurThreshold;
+        hblur.uniforms["blurThreshold"].value = effectController.blurThreshold;
         hblur.uniforms["blurSharp"].value = effectController.blurSharp;
         vblur.uniforms["blurSharp"].value = effectController.blurSharp;
         vblur.uniforms["far"].value = cam.far;

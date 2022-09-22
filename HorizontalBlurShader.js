@@ -1,3 +1,5 @@
+import * as THREE from 'https://cdn.skypack.dev/pin/three@v0.137.0-X5O2PK3x44y1WRry67Kr/mode=imports/optimized/three.js';
+
 const HorizontalBlurShader = {
 
     uniforms: {
@@ -7,7 +9,9 @@ const HorizontalBlurShader = {
         'blurSharp': { value: 0 },
         'near': { value: 0 },
         'far': { value: 0 },
-        'h': { value: 1.0 / 512.0 }
+        'h': { value: 1.0 / 512.0 },
+        'resolution': { value: new THREE.Vector2() },
+        'blurThreshold': { value: 0.25 }
 
     },
 
@@ -25,6 +29,8 @@ const HorizontalBlurShader = {
 		uniform float h;
 		uniform float near;
 		uniform float far;
+		uniform vec2 resolution;
+		uniform float blurThreshold;
 		varying vec2 vUv;
 		float linearize_depth(float d,float zNear,float zFar)
         {
@@ -41,7 +47,7 @@ const HorizontalBlurShader = {
 			float d = texture2D(sceneDepth, vUv).x;
 			float b = texture2D(tDiffuse, vUv).x;
 			float uvDepth = linearize_depth(d, 0.1, 1000.0);
-			float radius = h * (1.0 - d) * (-blurSharp * pow(b - 0.5, 2.0) + 1.0);
+			float radius = max(h * (1.0 - d) * (-blurSharp * pow(b - 0.5, 2.0) + 1.0), blurThreshold / resolution.x);
 			for(float i = -4.0; i <= 4.0; i++) {
 				vec2 sampleUv = vec2( vUv.x + i * radius, vUv.y );
 				float w = weights[int(i + 4.0)] * depthFalloff(sampleUv, uvDepth);
