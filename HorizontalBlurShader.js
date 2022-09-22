@@ -7,6 +7,7 @@ const HorizontalBlurShader = {
         'tDiffuse': { value: null },
         'sceneDepth': { value: null },
         'blurSharp': { value: 0 },
+        'depthBias': { value: 5.0 },
         'near': { value: 0 },
         'far': { value: 0 },
         'h': { value: 1.0 / 512.0 },
@@ -31,6 +32,7 @@ const HorizontalBlurShader = {
 		uniform float far;
 		uniform vec2 resolution;
 		uniform float blurThreshold;
+		uniform float depthBias;
 		varying vec2 vUv;
 		float linearize_depth(float d,float zNear,float zFar)
         {
@@ -38,7 +40,7 @@ const HorizontalBlurShader = {
         }
 		float depthFalloff(vec2 uv, float d) {
 			float uvDepth = linearize_depth(texture2D(sceneDepth, uv).x, 0.1, 1000.0);
-			return (1.0 / (1.0 + 5.0 * abs(uvDepth - d)));
+			return exp(-1.0 * depthBias * abs(uvDepth - d));
 		}
 		void main() {
 			vec4 sum = vec4( 0.0 );

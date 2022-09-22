@@ -197,6 +197,7 @@ async function main() {
         rotationZ: 0,
         rotationY: 0,
         denoise: true,
+        depthBias: 3.0,
         blurSize: 1,
         blurSharp: 2,
         blurThreshold: 0.2,
@@ -210,6 +211,7 @@ async function main() {
     gui.add(effectController, "rotationZ", 0.0, 2 * Math.PI, 0.001).name("Rotation Z");
     gui.add(effectController, "rotationY", 0.0, 2 * Math.PI, 0.001).name("Rotation Y");
     gui.add(effectController, "blurSharp", 0.0, 4.0, 0.001).name("Blur Sharp");
+    gui.add(effectController, "depthBias", 0.0, 5.0, 0.001).name("Depth Bias");
     gui.add(effectController, "autoThreshold").name("Auto Threshold");
     const blurThresholdController = gui.add(effectController, "blurThreshold", 0.0, 1.0, 0.001).name("Blur Threshold");
     gui.addColor(effectController, "lightColor").name("Light Color");
@@ -325,6 +327,8 @@ async function main() {
         hblur.uniforms["resolution"].value = new THREE.Vector2(clientWidth, clientHeight);
         vblur.uniforms["blurThreshold"].value = effectController.blurThreshold;
         hblur.uniforms["blurThreshold"].value = effectController.blurThreshold;
+        vblur.uniforms["depthBias"].value = effectController.depthBias;
+        hblur.uniforms["depthBias"].value = effectController.depthBias;
         hblur.uniforms["blurSharp"].value = effectController.blurSharp;
         vblur.uniforms["blurSharp"].value = effectController.blurSharp;
         vblur.uniforms["far"].value = cam.far;
