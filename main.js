@@ -16,6 +16,7 @@ import { Stats } from "./stats.js";
 import { EffectCompositer } from "./EffectCompositer.js";
 import { GUI } from 'https://unpkg.com/three@0.144.0/examples/jsm/libs/lil-gui.module.min.js';
 import { OBJLoader } from 'https://unpkg.com/three@0.144.0/examples/jsm/loaders/OBJLoader.js';
+import { FBXLoader } from 'https://unpkg.com/three@0.144.0/examples/jsm/loaders/FBXLoader.js';
 import * as BufferGeometryUtils from 'https://unpkg.com/three@0.144.0/examples/jsm/utils/BufferGeometryUtils.js';
 import { GLTFExporter } from "./GLTFExporter.js";
 async function main() {
@@ -100,7 +101,7 @@ async function main() {
     //torusKnot.position.z = 9;
     torusKnot.castShadow = true;
     torusKnot.receiveShadow = true;
-    scene.add(torusKnot);
+    // scene.add(torusKnot);
     // Build postprocessing stack
     // Render Targets
     const defaultTexture = new THREE.WebGLRenderTarget(clientWidth, clientHeight, {
@@ -250,8 +251,38 @@ async function main() {
             maxTextureSize: 4096
         })
     }*/
+    let mixer;
+    const dancer = await new FBXLoader().loadAsync('https://rawgit.com/mrdoob/three.js/r94/examples/models/fbx/Samba%20Dancing.fbx');
+
+    scene.add(dancer);
+    dancer.scale.multiplyScalar(0.1);
+    dancer.traverse(c => {
+
+        if (c.type === 'SkinnedMesh') {
+
+            var newMat = new THREE.MeshStandardMaterial();
+            newMat.color.copy(c.material.color);
+            newMat.roughness = 1.0;
+            newMat.skinning = true;
+
+            c.material = newMat;
+            c.castShadow = true;
+            c.receiveShadow = true;
+
+        }
+
+    });
+    mixer = new THREE.AnimationMixer(dancer);
+    mixer.clipAction(dancer.animations[0]).play();
+
+
+    const clock = new THREE.Clock();
 
     function animate() {
+        const delta = clock.getDelta();
+        if (mixer) {
+            mixer.update(delta);
+        }
         /*scene.overrideMaterial = customMeshDepth;
         cubeCamera.position.copy(light.position);
         cubeCamera.update(renderer, scene);
