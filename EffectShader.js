@@ -19,7 +19,10 @@ const EffectShader = {
         'width': { value: null },
         'time': { value: 0 },
         'near': { value: 0 },
-        'far': { value: 0 }
+        'far': { value: 0 },
+        'samples': { value: 4 },
+        'raySteps': { value: 10 },
+        'rayBias': { value: 5 }
     },
 
     vertexShader: /* glsl */ `
@@ -34,6 +37,9 @@ const EffectShader = {
     uniform sampler2D sceneDepth;
     uniform sampler2D blueNoise;
     uniform float time;
+    uniform float samples;
+    uniform float raySteps;
+    uniform float rayBias;
     uniform mat4 projectionMatrixInv;
     uniform mat4 viewMatrixInv;
     uniform vec3 cameraPos;
@@ -181,8 +187,8 @@ const EffectShader = {
       vec3 startPos = worldPos + 1.0 * toLight;
               float rayLength = 50.0;
               vec3 endPos = worldPos + rayLength * toLight;
-              float raySteps = 5.0 + 10.0 * rand();
-              float bias = 5.0;
+              float raySteps = (raySteps / 2.0) + (raySteps) * rand();
+              float bias = rayBias;
               vec3 lastPos = startPos;
               bool hit = false;
               for(float i = 0.0; i <= raySteps; i++) {
@@ -235,7 +241,6 @@ const EffectShader = {
             float shadow = 0.0;
             if (depth < 1.0) {
               float hits = 0.0;
-              float samples = 4.0;
               for(float i = 0.0; i < samples; i++) {
                 vec3 toLight = normalize((lightMatrix * vec4(vec3((rand() - 0.5), (rand() - 0.5), 0.0), 1.0)).xyz - worldPos);
                 bool hit = castRay(worldPos, toLight);

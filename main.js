@@ -190,6 +190,8 @@ async function main() {
     const noiseTex = new THREE.TextureLoader().load("noise.png");
     noiseTex.wrapS = THREE.RepeatWrapping;
     noiseTex.wrapT = THREE.RepeatWrapping;
+    //noiseTex.magFilter = THREE.NearestFilter;
+    //noiseTex.minFilter = THREE.NearestFilter;
     const testMarker = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 32), new THREE.MeshStandardMaterial());
     // scene.add(testMarker);
     const effectController = {
@@ -197,6 +199,7 @@ async function main() {
         height: 20,
         rotationZ: 0,
         rotationY: 0,
+        samples: 4,
         denoise: true,
         depthBias: 3.0,
         blurSize: 1,
@@ -204,11 +207,17 @@ async function main() {
         blurThreshold: 0.2,
         autoThreshold: true,
         autoRotate: false,
-        lightColor: [1, 1, 1]
+        interpolateNoise: false,
+        lightColor: [1, 1, 1],
+        raySteps: 10,
+        rayBias: 5
     };
     const gui = new GUI();
     gui.add(effectController, "width", 0.1, 100, 0.001).name("Width");
     gui.add(effectController, "height", 0.1, 80, 0.001).name("Height");
+    gui.add(effectController, "samples", 1, 16, 1).name("Samples");
+    gui.add(effectController, "raySteps", 2, 20, 2).name("Steps");
+    gui.add(effectController, "rayBias", 0, 10, 0.001).name("Bias");
     gui.add(effectController, "blurSize", 0.0, 1.0, 0.001).name("Blur Size");
     const zRotController = gui.add(effectController, "rotationZ", 0.0, 2 * Math.PI, 0.001).name("Rotation Z");
     const yRotController = gui.add(effectController, "rotationY", 0.0, 2 * Math.PI, 0.001).name("Rotation Y");
@@ -219,6 +228,7 @@ async function main() {
     gui.addColor(effectController, "lightColor").name("Light Color");
     gui.add(effectController, "denoise").name("Denoise");
     gui.add(effectController, "autoRotate").name("Auto Rotate");
+    gui.add(effectController, "interpolateNoise").name("Interpolate Noise");
     const link = document.createElement('a');
     link.style.display = 'none';
     document.body.appendChild(link);
@@ -332,6 +342,15 @@ async function main() {
             yRotController.setValue(effectController.rotationY + 0.01);
             zRotController.setValue(effectController.rotationZ + 0.05);
         }
+        if (effectController.interpolateNoise) {
+            noiseTex.magFilter = THREE.LinearFilter;
+            noiseTex.minFilter = THREE.LinearFilter;
+            noiseTex.needsUpdate = true;
+        } else {
+            noiseTex.magFilter = THREE.NearestFilter;
+            noiseTex.minFilter = THREE.NearestFilter;
+            noiseTex.needsUpdate = true;
+        }
         rectLight.color.r = effectController.lightColor[0];
         rectLight.color.g = effectController.lightColor[1];
         rectLight.color.b = effectController.lightColor[2];
@@ -355,6 +374,9 @@ async function main() {
         effectPass.uniforms['height'].value = rectLight.height;
         effectPass.uniforms['blueNoise'].value = noiseTex;
         effectPass.uniforms['lightMatrix'].value = arealightHelper.matrixWorld;
+        effectPass.uniforms['samples'].value = effectController.samples;
+        effectPass.uniforms['raySteps'].value = effectController.raySteps;
+        effectPass.uniforms['rayBias'].value = effectController.rayBias;
         effectCompositer.uniforms['sceneDiffuse'].value = defaultTexture.texture;
         hblur.uniforms["sceneDepth"].value = defaultTexture.depthTexture;
         hblur.uniforms["near"].value = cam.near;
